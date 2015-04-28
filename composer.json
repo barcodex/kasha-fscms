@@ -1,0 +1,25 @@
+{
+    "name": "barcodex/kasha-fscms",
+    "type": "library",
+    "description": "Dead-simple FileSystem based CMS for Kasha PHP framework",
+    "homepage": "http://www.tilpy.com",
+    "license": "MIT",
+    "authors": [
+        {"name": "Anvarzon Zurajev", "email": "anvarzon.zurajev@gmail.com"}
+    ],
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "http://wpackagist.org"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.2",
+        "barcodex/templar": "*",
+		"phpunit/phpunit": "4.5.*"
+    },
+    "autoload": {
+        "psr-0": { "Kasha\\": "lib/" }
+    },
+    "minimum-stability": "dev"
+}
