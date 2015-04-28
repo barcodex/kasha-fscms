@@ -1,7 +1,8 @@
 # kasha-fscms
 
 This library provides dead easy backend for filesystem based CMS.
-This CMS is expected to work on top of Kasha framework, but actually it does need only very basic dependencies and does not require fulls tack to run.
+This CMS is expected to work on top of Kasha framework,
+but actually it does need only very basic dependencies and does not require full Kasha stack to run.
 
 As it can be supposed from the name, this library has no database dependencies,
 so it can be used on most restrictive hostings and/or can be easily moved between different servers/OSs

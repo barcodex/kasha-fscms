@@ -9,6 +9,11 @@ class Manager
 	private $currentLanguage = 'en';
 	private $metadata = array();
 
+	/**
+	 * @param string $rootFolder
+	 * @param int $currentUser
+	 * @param string $currentLanguage
+	 */
 	public function __construct($rootFolder = '', $currentUser = 1, $currentLanguage = 'en')
 	{
 		if (!file_exists($rootFolder)) {
@@ -23,6 +28,9 @@ class Manager
 		}
 	}
 
+	/**
+	 *
+	 */
 	private function loadMetadata()
 	{
 		// get metadata keys and file names
@@ -43,11 +51,17 @@ class Manager
 		}
 	}
 
+	/**
+	 * @return array
+	 */
 	public function getMetadata()
 	{
 		return $this->metadata;
 	}
 
+	/**
+	 *
+	 */
 	private function regeneratePostsMetadata()
 	{
 		$posts = array();
@@ -65,12 +79,20 @@ class Manager
 		$this->writePostsMetadata($posts);
 	}
 
+	/**
+	 * @param $posts
+	 */
 	private function writePostsMetadata($posts)
 	{
 		$postsJSON = json_encode($posts, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 		file_put_contents($this->rootFolder . '/metadata/posts.json', $postsJSON);
 	}
 
+	/**
+	 * @param string $type
+	 *
+	 * @return array
+	 */
 	public function listPostsByType($type = '')
 	{
 		// make sure that all posts are listed if $type was not set explicitly
@@ -90,6 +112,11 @@ class Manager
 		return $output;
 	}
 
+	/**
+	 * @param array $searchParams
+	 *
+	 * @return array
+	 */
 	public function listPosts($searchParams = array())
 	{
 		// first, sort search parameters to metadata and full-data heaps
@@ -142,6 +169,12 @@ class Manager
 		return $output;
 	}
 
+	/**
+	 * @param $type
+	 * @param $post
+	 * @param string $status
+	 * @param null $publish
+	 */
 	public function addPost($type, $post, $status = 'draft', $publish = null)
 	{
 		if ($this->rootFolder != '') {
@@ -181,6 +214,16 @@ class Manager
 		}
 	}
 
+	public function updatePost($postInfo)
+	{
+		// @TODO serialize new object to the right file
+
+		// @TODO update metadata if needed
+	}
+
+	/**
+	 * @param $id
+	 */
 	public function deletePost($id)
 	{
 		// make sure we have the latest state of posts
@@ -197,6 +240,11 @@ class Manager
 		}
 	}
 
+	/**
+	 * @param $id
+	 *
+	 * @return array|mixed
+	 */
 	public function getPost($id)
 	{
 		// make sure we have the latest state of posts
