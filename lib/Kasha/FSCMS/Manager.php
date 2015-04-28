@@ -71,11 +71,11 @@ class Manager
 		file_put_contents($this->rootFolder . '/metadata/posts.json', $postsJSON);
 	}
 
-	public function listPosts($type = '')
+	public function listPostsByType($type = '')
 	{
-		// make sure that default post type is used if $type was not set explicitly
+		// make sure that all posts are listed if $type was not set explicitly
 		if ($type == '') {
-			$type = 'post';
+			$type = '*';
 		}
 
 		// return the array of post arrays
@@ -84,6 +84,58 @@ class Manager
 			foreach (glob($this->rootFolder . '/contents/' . $type . '/*.json') as $postFile) {
 				$postInfo = json_decode(file_get_contents($postFile), true);
 				$output[$postInfo['id']] = $postInfo;
+			}
+		}
+
+		return $output;
+	}
+
+	public function listPosts($searchParams = array())
+	{
+		// first, sort search parameters to metadata and full-data heaps
+		$metadataParams = array();
+		foreach (array_keys($searchParams) as $paramKey) {
+			if (in_array($paramKey, ['type', 'status', 'language'])) {
+				$metadataParams[$paramKey] = $searchParams[$paramKey];
+				unset($searchParams[$paramKey]);
+			}
+		}
+
+		// if metadata params are given, we can get ids of posts to search for more params
+		$output = array();
+		if (count($metadataParams) > 0) {
+			// pre-filter using metadata
+			foreach ($this->metadata['posts'] as $id => $postMeta) {
+				$include = true;
+				foreach ($metadataParams as $paramKey => $paramValue) {
+					if ($postMeta[$paramKey] == $paramValue) {
+						$include = false;
+						break;
+					}
+				}
+				if ($include) {
+					$output[$id] = $this->getPost($id);
+				}
+			}
+		} else {
+			// search on all posts. ouch.
+			$output = $this->listPostsByType();
+		}
+
+		// now we can filter the values based on post fields
+		if (count($searchParams) > 0) {
+			foreach (array_keys($output) as $id) {
+				$postInfo = $output[$id];
+				$exclude = false;
+				foreach ($searchParams as $paramKey => $paramValue) {
+					if (!isset($searchParams) || $postInfo[$paramKey] != $paramValue) {
+						$exclude = true;
+						break;
+					}
+				}
+				if ($exclude) {
+					unset($output[$id]);
+				}
 			}
 		}
 
@@ -166,8 +218,6 @@ class Manager
 	}
 
 	/**
-	 * @TODO improve the algorithm: emulate sequences
-	 *
 	 * @return int
 	 */
 	public function getNewID()
