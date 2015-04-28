@@ -220,7 +220,7 @@ class Manager
 	/**
 	 * @return int
 	 */
-	public function getNewID()
+	private function getNewID()
 	{
 		$ids = array_keys($this->metadata['posts']);
 		$lastId = (count($ids) > 0) ? max($ids) : 0;
