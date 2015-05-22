@@ -34,6 +34,44 @@ or requiring it from the command line:
 composer require barcodex/kasha-fscms:*
 ```
 
+## Folder structure
+
+Since CMS is based on the file system, it is very important to understand the folder structure.
+
+When Manager object is instantiated, its constructor gets an address of a CMS root folder as a parameter.
+Under this root folder, all data is contained - the main reason is, of course, the "contents" folder. There all the posts themselves are stored.
+Since CMS supports different types of posts, there are as many subfolders under "contents", as there are different types.
+In each type folder, posts are stored one per .json file.
+
+It is up to framework integrator to decide the structure of the post objects, but it is important to know about some reserved names for the fields, used internally by the framework and thus, unavailable to describe custom fields:
+
+|field    |description|
+|---------|-----------|
+|id       |id of the post is unique throughout all types|
+|type     |type of the post, can be any string
+|status   |either 'draft' or 'published'
+|created  |date of creation, as all other dates, is given in 'Y-m-d H:i:s' format|
+|published|in case of status being 'published', this contains date of publishing in 'Y-m-d H:i:s' format, otherwise empty string|
+|creator  |id of the creator|
+
+Every post has its set of metadata, which is stored separately.
+To speed up the searches, metadata of all posts is stored in the same posts.json file.
+This file is stored in "metadata" folder inside of the CMS root folder, to make sure it is not confused with the contents.
+
+Thus, the entire folder structure looks like this:
+
+```
+\contents
+  \type1
+    \id1.json
+     ...
+  ...
+\metadata
+ \posts.json
+
+```
+
+
 ## API
 
 The main thing to remember when using FSCMS library is that we need to specify the root folder for the content.
