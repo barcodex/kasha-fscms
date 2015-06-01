@@ -170,58 +170,88 @@ class Manager
 	}
 
 	/**
+     * Writes the post to the disk and updates the metadata store
+     *  By default, posts stay in "draft" status.
+     *  If $status is "published", and $publish is null, current datetime is used
+     *
 	 * @param $type
-	 * @param $post
+	 * @param $postInfo
 	 * @param string $status
 	 * @param null $publish
 	 */
-	public function addPost($type, $post, $status = 'draft', $publish = null)
+	public function addPost($type, $postInfo, $status = 'draft', $publish = null)
 	{
 		if ($this->rootFolder != '') {
-			$id = $this->getNewID();
+            // make sure that required content folders exist
 			if (!file_exists($this->rootFolder . '/contents')) {
 				mkdir($this->rootFolder . '/contents');
 			}
 			if (!file_exists($this->rootFolder . '/contents/' . $type)) {
 				mkdir($this->rootFolder . '/contents/' . $type);
 			}
+
 			// add more fields automatically
-			$post['id'] = $id;
-			$post['type'] = $type;
-			$post['status'] = $status;
-			$post['created'] = \Temple\DateTimeUtil::now()->format('Y-m-d H:i:s');
-			$post['creator'] = $this->currentUser;
+            $id = $this->getNewID();
+			$postInfo['id'] = $id;
+			$postInfo['type'] = $type;
+			$postInfo['status'] = $status;
+			$postInfo['created'] = \Temple\DateTimeUtil::now()->format('Y-m-d H:i:s');
+			$postInfo['creator'] = $this->currentUser;
 			if ($status == 'published') {
-				$post['published'] = !is_null($publish) ? $publish : $post['created'];
+				$postInfo['published'] = !is_null($publish) ? $publish : $postInfo['created'];
 			} else {
-				$post['published'] = '';
+				$postInfo['published'] = '';
 			}
+
 			// write out the JSON file
-			$postFile = $this->rootFolder . '/contents/' . $type . '/' . $id . '.json';
-			file_put_contents($postFile, json_encode($post, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-			if (!isset($this->metadata['posts']) || !is_array($this->metadata['posts'])) {
-				$this->regeneratePostsMetadata();
-			} else {
-				$this->metadata['posts']["$id"] = array(
-					'id' => $post['id'],
-					'type' => $post['type'],
-					'status' => $post['status'],
-					'published' => $post['published'],
-					'language' => $post['language']
-				);
-				$this->writePostsMetadata($this->metadata['posts']);
-			}
+			$postFilePath = $this->rootFolder . '/contents/' . $type . '/' . $id . '.json';
+			file_put_contents($postFilePath, json_encode($postInfo, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+            // refresh metadata on the disk
+            $this->refreshMetadata($postInfo);
 		}
 	}
 
-	public function updatePost($postInfo)
-	{
-		// @TODO serialize new object to the right file
+    public function refreshMetadata($postInfo)
+    {
+        if (!isset($this->metadata['posts']) || !is_array($this->metadata['posts'])) {
+            $this->regeneratePostsMetadata();
+        } else {
+            $id = $postInfo['id'];
+            $this->metadata['posts']["$id"] = array(
+                'id' => $id,
+                'type' => $postInfo['type'],
+                'status' => $postInfo['status'],
+                'published' => $postInfo['published'],
+                'language' => $postInfo['language']
+            );
+            $this->writePostsMetadata($this->metadata['posts']);
+        }
+    }
 
-		// @TODO update metadata if needed
+    /**
+     * Persists current state of the post on the disk.
+     *  Does not calculate any values automatically,
+     *  so the caller code is responsible for what gets saved.
+     *
+     * @param $postInfo
+     */
+    public function updatePost($postInfo)
+	{
+        // write out the JSON file
+        $postFilePath = $this->rootFolder . '/contents/' . $postInfo['type'] . '/' . $postInfo['id'] . '.json';
+        file_put_contents($postFilePath, json_encode($postInfo, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+        // refresh metadata on the disk
+        $this->refreshMetadata($postInfo);
 	}
 
 	/**
+     * Deletes post by its ID.
+     *  If post is not mentioned in metadata, does nothing.
+     *  However, metadata is regenerated before searching for the file,
+     *  so this should not be the real case.
+     *
 	 * @param $id
 	 */
 	public function deletePost($id)
@@ -241,6 +271,9 @@ class Manager
 	}
 
 	/**
+     * Gets the post as associative array.
+     *  Returns empty array if provided id was invalid
+     *
 	 * @param $id
 	 *
 	 * @return array|mixed
@@ -251,7 +284,7 @@ class Manager
 		if (!isset($this->metadata['posts'])) {
 			$this->regeneratePostsMetadata();
 		}
-		// get the file
+		// get the file: metadata for the post contains type => use it for constructing the path
 		$output = array();
 		if (isset($this->metadata['posts'][$id])) {
 			$postMeta = $this->metadata['posts'][$id];
@@ -266,6 +299,10 @@ class Manager
 	}
 
 	/**
+     * Calculates the next ID for the post.
+     *  This method is not thread safe, but that's ok
+     *  because we assume that there are no concurrent admin sessions
+     *
 	 * @return int
 	 */
 	private function getNewID()
