@@ -212,23 +212,6 @@ class Manager
 		}
 	}
 
-    public function refreshMetadata($postInfo)
-    {
-        if (!isset($this->metadata['posts']) || !is_array($this->metadata['posts'])) {
-            $this->regeneratePostsMetadata();
-        } else {
-            $id = $postInfo['id'];
-            $this->metadata['posts']["$id"] = array(
-                'id' => $id,
-                'type' => $postInfo['type'],
-                'status' => $postInfo['status'],
-                'published' => $postInfo['published'],
-                'language' => $postInfo['language']
-            );
-            $this->writePostsMetadata($this->metadata['posts']);
-        }
-    }
-
     /**
      * Persists current state of the post on the disk.
      *  Does not calculate any values automatically,
@@ -298,7 +281,29 @@ class Manager
 		return $output;
 	}
 
-	/**
+    /**
+     * Refreshes posts metadata with the latest information about given post
+     *
+     * @param $postInfo
+     */
+    private function refreshMetadata($postInfo)
+    {
+        if (!isset($this->metadata['posts']) || !is_array($this->metadata['posts'])) {
+            $this->regeneratePostsMetadata();
+        } else {
+            $id = $postInfo['id'];
+            $this->metadata['posts']["$id"] = array(
+                'id' => $id,
+                'type' => $postInfo['type'],
+                'status' => $postInfo['status'],
+                'published' => $postInfo['published'],
+                'language' => $postInfo['language']
+            );
+            $this->writePostsMetadata($this->metadata['posts']);
+        }
+    }
+
+    /**
      * Calculates the next ID for the post.
      *  This method is not thread safe, but that's ok
      *  because we assume that there are no concurrent admin sessions

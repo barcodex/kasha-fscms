@@ -92,8 +92,10 @@ After class instance is created, we can run just a handful of public methods to 
 |method|description|
 |------|-----------|
 |getPost($id)|retrieves the array with post data (empty if id is not valid)|
+|addPost($type, $postInfo, $status = 'draft', $publish = null)|adds a new post|
+|updatePost($postInfo)|updates the post|
 |deletePost($id)|deletes the specified post from the disk|
-|listPostsByType($type)|retrives array of post objects filtered by type|
+|listPostsByType($type)|retrieves array of post objects filtered by type|
 |listPosts($searchParams)|filters posts by their metadata or field values|
 |getMetadata()|returns all known metadata about the content|
 
@@ -103,3 +105,9 @@ Metadata is used for speeding up the searches.
 Without metadata, the search would always be a full scan of the files, which is not exactly the most efficient way of searching.
 Anyway, this library is only good for really small sites with up to 100 posts - in this case, combination of full scans with handful of metadata and index files provide quite good performance.
 
+## Further integrations
+
+Anyone is welcome to fork the library and extend it with support for different post types.
+Since every post is just a JSON object, it is totally possible to have whatever fields in the object, granted that they do not conflict with reserved fields used in the metadata (See the section Folder Structure above).
+
+API is sufficient to build a RESTful application with any desired frontend.
